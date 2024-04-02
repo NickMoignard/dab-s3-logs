@@ -3,7 +3,7 @@ use aws_config::meta::region::RegionProviderChain;
 use log::info;
 use std::{collections::HashMap, fs::File, io::{BufWriter, Write}, path::Path};
 use anyhow::{bail, Result, anyhow};
-
+use human_bytes::human_bytes;
 type ObjectMap = HashMap<String, Object>;
 
 #[derive(Debug)]
@@ -52,12 +52,16 @@ pub async fn list_keys(client: &Client, bucket: &str, prefix: &str) -> Result<Qu
     }
   }
 
-  Ok(Query {
+  let query = Query {
     objects,
     prefix: prefix.to_string(),
     bucket: bucket.to_string(),
     size: total_query_size,
-  })
+  };
+
+  log_query(&query);
+
+  Ok(query)
 }
   
 pub async fn download_file(client: &Client, bucket_name: &str, key: &str, dir: &Path) -> Result<()> {
@@ -97,4 +101,11 @@ pub async fn get_aws_client() -> Result<Client> {
   let client = Client::new(&config);
 
   Ok(client)
+}
+
+fn log_query(query: &Query) {
+  info!("Bucket: {}", query.bucket);
+  info!("Prefix: {}", query.prefix);
+  info!("Size: {}", human_bytes(query.size as f64));
+  info!("Objects: {}", query.objects.len());
 }
