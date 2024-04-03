@@ -14,7 +14,7 @@ pub struct Query {
   pub size: u64,
 }
 
-// Constants
+// TODO: move to application config
 const REGION: &str = "ap-southeast-2";
 
 pub async fn get_buckets(client: &Client) -> Result<Vec<Bucket>> {
