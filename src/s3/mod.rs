@@ -1,6 +1,6 @@
 use aws_sdk_s3::{primitives::ByteStream, types::{Bucket, Object}, Client};
 use aws_config::meta::region::RegionProviderChain;
-use log::info;
+use log::{debug, info};
 use std::{collections::HashMap, fs::File, io::{BufWriter, Write}, path::Path};
 use anyhow::{bail, Result, anyhow};
 use human_bytes::human_bytes;
@@ -44,7 +44,7 @@ pub async fn list_keys(client: &Client, bucket: &str, prefix: &str) -> Result<Qu
             total_query_size += u64::try_from(o.size.unwrap()).unwrap();
             objects.insert(o.key.clone().expect("Key missing").to_string(), o.to_owned());
           });
-          info!("Processed page of results")
+          debug!("Processed page of results")
         }
         Err(err) => {
             eprintln!("ERROR {err:?}")
@@ -90,7 +90,7 @@ pub async fn download_file(client: &Client, bucket_name: &str, key: &str, dir: &
   }
   buf_writer.flush()?;
 
-  info!("Downloaded file: {}", key);
+  debug!("Downloaded file: {}", key);
 
   Ok(())
 }
