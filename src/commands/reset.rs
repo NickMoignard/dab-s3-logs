@@ -1,8 +1,9 @@
 use std::fs;
 use fs_extra::remove_items;
+use anyhow::Result;
 
 /// Empties storage directory
-pub fn reset () {
+pub async fn delete_downloaded_logs () -> Result<()>{
   let mut from_paths = Vec::new();
 
   fs::read_dir("./temp/storage").unwrap().for_each(|entry| {
@@ -11,5 +12,7 @@ pub fn reset () {
     from_paths.push(path);
   });
 
-  remove_items(&from_paths).unwrap();
+  let result = remove_items(&from_paths).unwrap();
+
+  Ok(result)
 }

@@ -2,7 +2,7 @@ use log::debug;
 use serde_derive::{Serialize, Deserialize};
 
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StorageConfig {
   pub max_storage: u64,
   pub download_directory: String,

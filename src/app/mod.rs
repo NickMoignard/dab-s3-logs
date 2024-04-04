@@ -4,13 +4,12 @@ use fs_extra::dir::get_size;
 use log::info;
 use std::thread::available_parallelism;
 use anyhow::Result;
-use crate::{s3::{self, Query}, storage::config::{StorageConfig, load}};
+use crate::{s3, storage::config::{StorageConfig, load}};
 
 pub mod download;
 
 #[derive(Debug)]
 pub struct App {
-  pub queries: Arc<Mutex<Vec<Query>>>,
   pub buckets: Arc<Mutex<Vec<Bucket>>>,
   pub storage_config: Mutex<Option<StorageConfig>>,
   pub used_storage:u64,
@@ -20,7 +19,6 @@ pub struct App {
 impl Default for App {
   fn default() -> Self {
     Self {
-      queries: Arc::new(Mutex::new(Vec::<Query>::new())),
       buckets: Arc::new(Mutex::new(Vec::<Bucket>::new())),
       storage_config: Mutex::new(None),
       used_storage: 0,

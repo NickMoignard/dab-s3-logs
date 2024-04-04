@@ -10,7 +10,7 @@ use crate::s3::{self, Query};
 use super::App;
 
 // TODO: Add to application config
-const DOWNLOAD_PARALLELISM: usize = 128;
+const DOWNLOAD_PARALLELISM: usize = 100;
 
 fn create_batches_from_query(query: &Query) -> Vec<Vec<Object>> {
   let num_downloads = query.objects.len();

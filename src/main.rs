@@ -2,13 +2,12 @@ use log::info;
 use clap::{arg, command, Args, Parser, Subcommand};
 
 use anyhow::Result as OtherResult;
-use dab_s3_logs::{app::{self, download, App}, s3, commands, output::output_files};
+use dab_s3_logs::{app, s3, commands};
 
 #[tokio::main]
 async fn main() -> OtherResult<()> {
     let app = app::setup().unwrap();
     let client = s3::get_aws_client().await.unwrap();
-
     let args = CliArgs::parse();
   
     match args.cmd {
@@ -21,37 +20,26 @@ async fn main() -> OtherResult<()> {
         Commands::Config(config) => match config.cmd {
             Some(config) => match config {
                 ConfigCommands::SetDownloadDir { path } => {
-                    commands::config::set_download_directory(path);
+                    commands::config::set_download_directory(path, &app)?;
                 }
                 ConfigCommands::SetMaxStorage { size } => {
-                    commands::config::set_max_storage(size);
+                    commands::config::set_max_storage(size, &app)?;
                 }
                 ConfigCommands::List => {
-                    commands::config::list();
+                    commands::config::list(&app)?;
                 }
             }
             None => {}
         }
-        Commands::Reset => {
-            commands::reset::reset();
+        Commands::Output => {
+            commands::output::output_files(&app).await?;
         }
-        _ => {}
+        Commands::Reset => {
+            commands::reset::delete_downloaded_logs().await?;
+        }
     }
-    
-    // test_download(&app).await?;
 
     exit();
-    Ok(())
-}
-
-async fn test_download(app: &App) -> OtherResult<()> {
-    const BUCKET: &str = "dabble-staging-kube-logs";
-    let client = s3::get_aws_client().await?;
-
-    let query = s3::list_keys(&client, BUCKET, "staging/social/2024-03-21").await?;
-    let files = download::download_query_results(&query, BUCKET.to_string(), app, &client).await?;
-    let _ = output_files(files).await.unwrap();
-
     Ok(())
 }
 
@@ -93,6 +81,8 @@ enum Commands {
         #[arg(short, long)]
         prefix: String,
     },
+    /// Output downloaded logs to stdout
+    Output,
     /// Manage configuration options
     Config(ConfigArgs),
     /// Clear storage directory
