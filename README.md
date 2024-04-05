@@ -31,3 +31,7 @@ Options:
 brew tap NickMoignard/tap;
 brew install dab-s3-logs;
 ```
+
+## Issues
+
+Make sure you've logged in with AWS CLI and have the necessary permissions to access the S3 bucket. (also check `AWS_PROFILE` make sure it is the correct profile)
