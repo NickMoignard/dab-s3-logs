@@ -9,8 +9,9 @@ use dab_s3_logs::{app, s3, commands};
 #[tokio::main]
 async fn main() -> OtherResult<()> {
     let app = app::setup().unwrap();
-    let client = s3::get_aws_client().await.unwrap();
     let args = CliArgs::parse();
+
+    let client = s3::get_aws_client(args.profile, &app).await.unwrap();
   
     match args.cmd {
         Commands::Fetch { bucket, prefix } => {
@@ -60,6 +61,29 @@ async fn main() -> OtherResult<()> {
                         }
                     }
                 }
+                ConfigCommands::ListAwsProfiles => {
+                    let result = s3::get_aws_profiles(&app);
+                    match result {
+                        Ok(profiles) => {
+                            for profile in profiles {
+                                println!("{}", profile);
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("Failed to list AWS profiles: {:?}", e);
+                        }
+                    }
+                }
+                ConfigCommands::SelectAwsProfile => {
+                    let result = s3::select_aws_profile(&app);
+                    match result {
+                        Ok(_) => {}
+                        Err(e) => {
+                            eprintln!("Failed to select AWS profile: {:?}", e);
+                        }
+                    }
+                }
+                
             }
             None => {}
         }
@@ -85,8 +109,12 @@ fn exit() {
 #[command(about = "Tool to fetch and output logs from S3 buckets", long_about = None)]
 #[command(version, version = "0.1.0")]
 pub struct CliArgs {
+  /// The subcommand to run
   #[command(subcommand)]
-  cmd: Commands
+  cmd: Commands,
+  /// AWS Profile to use when initializing the S3 client
+  #[arg(long)]
+  profile: Option<String>,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -146,4 +174,7 @@ enum ConfigCommands {
     },
     /// List configuration values
     List,
+    /// List AWS Profiles
+    ListAwsProfiles,
+    SelectAwsProfile,
 }

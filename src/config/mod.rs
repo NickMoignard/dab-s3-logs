@@ -7,6 +7,7 @@ use dirs;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ApplicationConfig {
+  pub aws_profile: Option<String>,
   pub download_thread_concurrency: usize,
   pub output_thread_concurrency: usize,
   pub download_directory: PathBuf,
@@ -32,7 +33,8 @@ impl ::std::default::Default for ApplicationConfig {
     let data_directory = dirs::data_dir().unwrap().join(APPLICATION_NAME);
     let aws_config_path = dirs::home_dir().unwrap().join(DEFAULT_AWS_CONFIG_PATH_SUFFIX);
 
-    Self { 
+    Self {
+      aws_profile: None,
       aws_config_path,
       download_directory,
       cache_directory,

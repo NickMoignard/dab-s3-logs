@@ -2,7 +2,7 @@ use aws::s3::Bucket;
 
 fn save_buckets_to_file(buckets: &Vec<Bucket>, app: &App) -> Result<(), Box<dyn Error>> {
   let cfg = app.config.lock().unwrap().clone().unwrap();
-  
+
   let mut file = File::create(filename)?;
   for bucket in buckets {
       writeln!(file, "{}", bucket)?;
