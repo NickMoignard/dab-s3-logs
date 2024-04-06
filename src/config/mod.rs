@@ -12,6 +12,7 @@ pub struct ApplicationConfig {
   pub download_directory: PathBuf,
   pub aws_config_path: PathBuf,
   pub cache_directory: PathBuf,
+  pub data_directory: PathBuf,
   pub home_directory: PathBuf,
   pub max_storage: u64,
 }
@@ -28,12 +29,14 @@ impl ::std::default::Default for ApplicationConfig {
   fn default() -> Self { 
     let download_directory = dirs::download_dir().unwrap().join(APPLICATION_NAME);
     let cache_directory = dirs::cache_dir().unwrap().join(APPLICATION_NAME);
+    let data_directory = dirs::data_dir().unwrap().join(APPLICATION_NAME);
     let aws_config_path = dirs::home_dir().unwrap().join(DEFAULT_AWS_CONFIG_PATH_SUFFIX);
 
     Self { 
       aws_config_path,
       download_directory,
       cache_directory,
+      data_directory,
       download_thread_concurrency: DEFAULT_DOWNLOAD_THREAD_CONCURRENCY,
       output_thread_concurrency: DEFAULT_OUTPUT_THREAD_CONCURRENCY,
       max_storage: DEFAULT_MAX_STORAGE,

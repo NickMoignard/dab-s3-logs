@@ -43,7 +43,7 @@ async fn main() -> OtherResult<()> {
                     }
                 }
                 ConfigCommands::SetMaxStorage { size } => {
-                    let result = commands::config::set_max_storage(size);
+                    let result = commands::config::set_max_storage(size.as_str());
                     match result {
                         Ok(_) => {}
                         Err(e) => {
@@ -140,9 +140,9 @@ enum ConfigCommands {
     /// Set the max storage size
     #[command(arg_required_else_help = true)]
     SetMaxStorage {
-        /// Maximum storage size in bytes
+        /// Maximum storage size
         #[arg(short, long)]
-        size: u64,
+        size: String,
     },
     /// List configuration values
     List,

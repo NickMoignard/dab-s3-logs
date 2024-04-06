@@ -1,13 +1,15 @@
 use std::sync::{Arc, Mutex};
 use aws_sdk_s3::{types::Bucket, Client};
 use fs_extra::dir::get_size;
-use log::{debug, info};
+use log::{debug, info, error as log_error};
 use std::thread::available_parallelism;
 use anyhow::Result;
 use crate::s3;
 use crate::config;
 
+pub mod errors;
 pub mod download;
+use errors::ApplicationError::{self, DirectoryCreationError};
 
 #[derive(Debug)]
 pub struct App {
@@ -56,7 +58,8 @@ pub fn setup() -> Result<App> {
       app_config_binding.replace(cloned_cfg);
   }
 
-  setup_directories(&app);
+  setup_directories(&app)?;
+
   let size = get_size(cfg_from_file.download_directory).unwrap();
   
   app.set_used_storage(size); 
@@ -64,28 +67,53 @@ pub fn setup() -> Result<App> {
   Ok(app)
 }
 
-fn setup_directories(app: &App) {
+fn setup_directories(app: &App) -> Result<(), ApplicationError> {
   let cfg_clone = app.config.lock().unwrap().clone().unwrap();
 
   if !cfg_clone.download_directory.exists() {
-    debug!("Creating download directory: {:?}", cfg_clone.download_directory);
-    let result = std::fs::create_dir_all(cfg_clone.download_directory);
+    let cfg_binding = app.config.lock().unwrap();
+    let dir = cfg_binding.as_ref().unwrap().download_directory.clone();
+
+    debug!("Creating download directory: {:?}", &dir);
+    let result = std::fs::create_dir_all(&dir);
     match result {
       Ok(_) => {},
       Err(e) => {
-        eprintln!("Failed to create download directory: {:?}", e);
+        log_error!("{}", e);
+        return Err(DirectoryCreationError(dir));
       }
     }
   }
 
   if !cfg_clone.cache_directory.exists() {
-    debug!("Creating cache directory: {:?}", cfg_clone.cache_directory);
-    let result = std::fs::create_dir_all(cfg_clone.cache_directory);
+    let cfg_binding = app.config.lock().unwrap();
+    let dir = cfg_binding.as_ref().unwrap().cache_directory.clone();
+
+    debug!("Creating cache directory: {:?}", &dir);
+    let result = std::fs::create_dir_all(&dir);
     match result {
       Ok(_) => {},
       Err(e) => {
-        eprintln!("Failed to create cache directory: {:?}", e);
+        log_error!("{}", e);
+        return Err(DirectoryCreationError(dir));
       }
     }
   }
+
+  if !cfg_clone.data_directory.exists() {
+    let cfg_binding = app.config.lock().unwrap();
+    let dir = cfg_binding.as_ref().unwrap().data_directory.clone();
+
+    debug!("Creating data directory: {:?}", &dir);
+    let result = std::fs::create_dir_all(&dir);
+    match result {
+      Ok(_) => {},
+      Err(e) => {
+        log_error!("{}", e);
+        return Err(DirectoryCreationError(dir));
+      }
+    }
+  }
+
+  Ok(())
 }
