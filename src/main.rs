@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use log::info;
 use clap::{arg, command, Args, Parser, Subcommand};
 
@@ -12,21 +14,51 @@ async fn main() -> OtherResult<()> {
   
     match args.cmd {
         Commands::Fetch { bucket, prefix } => {
-            let _ = commands::fetch::fetch(&client, &app, bucket, prefix).await;
+            let result = commands::fetch::fetch(&client, &app, bucket, prefix).await;
+            match result {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Failed to fetch logs: {:?}", e);
+                }
+            }
         }
         Commands::Preview { bucket, prefix } => {
-            let _ = commands::fetch::preview(&client, bucket, prefix).await;
+            let result = commands::fetch::preview(&client, bucket, prefix).await;
+            match result {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Failed to preview logs: {:?}", e);
+                }
+            }
         }
         Commands::Config(config) => match config.cmd {
             Some(config) => match config {
                 ConfigCommands::SetDownloadDir { path } => {
-                    commands::config::set_download_directory(path, &app)?;
+                    let result = commands::config::set_download_directory(path);
+                    match result {
+                        Ok(_) => {}
+                        Err(e) => {
+                            eprintln!("Failed to set download directory: {:?}", e);
+                        }
+                    }
                 }
                 ConfigCommands::SetMaxStorage { size } => {
-                    commands::config::set_max_storage(size, &app)?;
+                    let result = commands::config::set_max_storage(size);
+                    match result {
+                        Ok(_) => {}
+                        Err(e) => {
+                            eprintln!("Failed to set max storage: {:?}", e);
+                        }
+                    }
                 }
                 ConfigCommands::List => {
-                    commands::config::list(&app)?;
+                    let result = commands::config::list();
+                    match result {
+                        Ok(_) => {}
+                        Err(e) => {
+                            eprintln!("Failed to list configuration: {:?}", e);
+                        }
+                    }
                 }
             }
             None => {}
@@ -103,7 +135,7 @@ enum ConfigCommands {
     SetDownloadDir {
         /// Path to the download directory
         #[arg(short, long)]
-        path: String,
+        path: PathBuf,
     },
     /// Set the max storage size
     #[command(arg_required_else_help = true)]

@@ -8,13 +8,12 @@ use tokio::sync::mpsc;
 
 use crate::{app::App, output::stdout, storage::get_all_files};
 
-// TODO: Add to application configuration
-const OUTPUT_PARALLELISM: usize = 10;
-
 pub async fn output_files (app: &App) -> Result<()> {
+  let cfg = app.config.lock().unwrap().clone();
   let files = get_all_files(app).unwrap();
   let num_files = files.len();
-  let files_per_thread = num_files / OUTPUT_PARALLELISM;
+  let files_per_thread = num_files / cfg.unwrap().output_thread_concurrency;
+
   let nested_files = files.chunks(files_per_thread).map(|x| x.to_vec()).collect::<Vec<Vec<String>>>();
 
   let (tx, mut rx) = mpsc::channel::<String>(128);

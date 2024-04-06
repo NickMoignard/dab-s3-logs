@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use aws_sdk_s3::{types::Object, Client};
 use indicatif::{ProgressBar, ProgressStyle};
 use tokio::sync::mpsc;
@@ -9,27 +7,32 @@ use crate::s3::{self, Query};
 
 use super::App;
 
-// TODO: Add to application config
-const DOWNLOAD_PARALLELISM: usize = 100;
+const PROGRESS_BAR_TEMPLATE: &str = "[{elapsed_precise}] {bar:40.cyan/blue} {bytes}/{total_bytes} {msg}";
 
-fn create_batches_from_query(query: &Query) -> Vec<Vec<Object>> {
+fn create_batches_from_query(query: &Query, app: &App) -> Vec<Vec<Object>> {
   let num_downloads = query.objects.len();
-  let downloads_per_thread = num_downloads / DOWNLOAD_PARALLELISM;
+  let download_thread_concurrency = {
+    let cfg_clone = app.config.lock().unwrap().clone().unwrap();
+    cfg_clone.download_thread_concurrency
+  };
+
+  let downloads_per_thread = num_downloads / download_thread_concurrency;
   let objects: Vec<Object> = query.objects.clone().into_values().collect();
   objects.chunks(downloads_per_thread).map(|x| x.to_vec()).collect::<Vec<Vec<Object>>>()
 }
 
 pub async fn download_query_results(query: &Query, bucket: String,  app: &App, client: &Client) -> Result<Vec<String>> {
   let progress_bar = ProgressBar::new(query.size);
-  let style = ProgressStyle::with_template("[{elapsed_precise}] {bar:40.cyan/blue} {bytes}/{total_bytes} {msg}").unwrap();
-  progress_bar.set_style(style);
+  progress_bar.set_style(ProgressStyle::with_template(PROGRESS_BAR_TEMPLATE).unwrap());
 
-  let storage_binding = app.storage_config.lock().unwrap();
-  let download_dir = Path::new(storage_binding.as_ref().unwrap().download_directory.as_str());
+  let download_dir = {
+    let cfg_binding = app.config.lock().unwrap();
+    cfg_binding.clone().unwrap().download_directory
+  };
 
   let (tx, mut rx) = mpsc::channel::<DownloadResult>(128);
 
-  let chunks = create_batches_from_query(query);
+  let chunks = create_batches_from_query(query, app);
 
    for chunk in chunks {
       let tx_clone = tx.clone();

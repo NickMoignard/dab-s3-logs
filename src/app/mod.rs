@@ -1,28 +1,29 @@
-use std::{path::Path, sync::{Arc, Mutex}};
+use std::sync::{Arc, Mutex};
 use aws_sdk_s3::{types::Bucket, Client};
 use fs_extra::dir::get_size;
-use log::info;
+use log::{debug, info};
 use std::thread::available_parallelism;
 use anyhow::Result;
-use crate::{s3, storage::config::{StorageConfig, load}};
+use crate::s3;
+use crate::config;
 
 pub mod download;
 
 #[derive(Debug)]
 pub struct App {
   pub buckets: Arc<Mutex<Vec<Bucket>>>,
-  pub storage_config: Mutex<Option<StorageConfig>>,
+  pub config: Mutex<Option<config::ApplicationConfig>>,
   pub used_storage:u64,
-  pub parallelism: usize,
+  pub available_parallelism: usize,
 }
 
 impl Default for App {
   fn default() -> Self {
     Self {
       buckets: Arc::new(Mutex::new(Vec::<Bucket>::new())),
-      storage_config: Mutex::new(None),
+      config: Mutex::new(None),
       used_storage: 0,
-      parallelism: available_parallelism().unwrap().get(),
+      available_parallelism: available_parallelism().unwrap().get(),
     }
   }
 }
@@ -46,30 +47,45 @@ pub fn setup() -> Result<App> {
   env_logger::init();
   info!("Setting up");
 
+  let cfg_from_file = config::get_config().unwrap();
   let mut app = App::new();
-  {
-      let mut storage_config_binding = app.storage_config.lock().unwrap();
-      let config = load();
-      storage_config_binding.replace(config.unwrap());
 
-      let _ = setup_storage_dir(storage_config_binding.as_ref().unwrap());
+  {
+      let cloned_cfg = cfg_from_file.clone();
+      let mut app_config_binding = app.config.lock().unwrap();
+      app_config_binding.replace(cloned_cfg);
   }
 
-  let download_dir = {
-      let storage_config = app.storage_config.lock().unwrap();
-      storage_config.as_ref().unwrap().download_directory.as_str().to_string()
-  };
-  let size = get_size(download_dir).unwrap();
+  setup_directories(&app);
+  let size = get_size(cfg_from_file.download_directory).unwrap();
   
   app.set_used_storage(size); 
 
   Ok(app)
 }
 
-pub fn setup_storage_dir (config: &StorageConfig) -> std::io::Result<()> {
-  if Path::new(config.download_directory.as_str()).exists() {
-      return Ok(())
+fn setup_directories(app: &App) {
+  let cfg_clone = app.config.lock().unwrap().clone().unwrap();
+
+  if !cfg_clone.download_directory.exists() {
+    debug!("Creating download directory: {:?}", cfg_clone.download_directory);
+    let result = std::fs::create_dir_all(cfg_clone.download_directory);
+    match result {
+      Ok(_) => {},
+      Err(e) => {
+        eprintln!("Failed to create download directory: {:?}", e);
+      }
+    }
   }
 
-  std::fs::create_dir_all(config.download_directory.as_str())
+  if !cfg_clone.cache_directory.exists() {
+    debug!("Creating cache directory: {:?}", cfg_clone.cache_directory);
+    let result = std::fs::create_dir_all(cfg_clone.cache_directory);
+    match result {
+      Ok(_) => {},
+      Err(e) => {
+        eprintln!("Failed to create cache directory: {:?}", e);
+      }
+    }
+  }
 }
