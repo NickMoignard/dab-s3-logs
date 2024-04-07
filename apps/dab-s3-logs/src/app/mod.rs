@@ -1,10 +1,9 @@
 use std::sync::{Arc, Mutex};
-use aws_sdk_s3::{types::Bucket, Client};
+use aws_sdk_s3::types::Bucket;
 use fs_extra::dir::get_size;
 use log::{debug, info, error as log_error};
 use std::thread::available_parallelism;
 use anyhow::Result;
-use crate::s3;
 use crate::config;
 
 pub mod errors;
@@ -38,11 +37,6 @@ impl App {
   pub fn set_used_storage(&mut self, used_storage: u64) {
     self.used_storage = used_storage;
   }
-}
-
-pub async fn load_buckets (app: &App, client: &Client) {
-  let buckets = s3::get_buckets(&client).await.unwrap();
-  app.buckets.lock().unwrap().extend(buckets);
 }
 
 pub fn setup() -> Result<App> {
@@ -117,3 +111,14 @@ fn setup_directories(app: &App) -> Result<(), ApplicationError> {
 
   Ok(())
 }
+
+// fn rebuild_local_data() {
+  // delete data directory
+  // create data directory
+
+  // fetch profiles
+    // fetch buckets
+    // save buckets to file for profile
+
+  // ???? subdirectories ????
+// }

@@ -1,17 +1,17 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, rc::Rc};
 
 use log::info;
 use clap::{arg, command, Args, Parser, Subcommand};
-
-use anyhow::Result as OtherResult;
-use dab_s3_logs::{app, s3, commands};
+use aws_sdk_s3::Client;
+use anyhow::{Error, Result as OtherResult};
+use dab_s3_logs::{app, aws::{s3, client, profiles}, commands};
 
 #[tokio::main]
 async fn main() -> OtherResult<()> {
     let app = app::setup().unwrap();
     let args = CliArgs::parse();
 
-    let client = s3::get_aws_client(args.profile, &app).await.unwrap();
+    let client = client::get_aws_client(args.profile, &app).await.unwrap();
   
     match args.cmd {
         Commands::Fetch { bucket, prefix } => {
@@ -62,7 +62,7 @@ async fn main() -> OtherResult<()> {
                     }
                 }
                 ConfigCommands::ListAwsProfiles => {
-                    let result = s3::get_aws_profiles(&app);
+                    let result = profiles::get_aws_profiles(&app);
                     match result {
                         Ok(profiles) => {
                             for profile in profiles {
@@ -75,7 +75,7 @@ async fn main() -> OtherResult<()> {
                     }
                 }
                 ConfigCommands::SelectAwsProfile => {
-                    let result = s3::select_aws_profile(&app);
+                    let result = profiles::select_aws_profile(&app);
                     match result {
                         Ok(_) => {}
                         Err(e) => {
@@ -93,6 +93,9 @@ async fn main() -> OtherResult<()> {
         Commands::Reset => {
             commands::reset::delete_downloaded_logs().await?;
         }
+        Commands::Test => {
+            test_buckets_code(&app, &client).await.unwrap();
+        }
     }
 
     exit();
@@ -101,6 +104,41 @@ async fn main() -> OtherResult<()> {
 
 fn exit() {
     info!("Exiting");
+}
+
+async fn test_buckets_code(app: &app::App, client: &Client) -> Result<(), Error> {
+    let cfg = Rc::new(app.config.lock().unwrap().clone().unwrap());
+    let profile = cfg.aws_profile.clone().unwrap();
+    println!("Profile: {:?}", profile);
+
+    let buckets = s3::buckets::get_buckets(client).await;
+    match buckets {
+        Ok(buckets) => {
+            for bucket in &buckets {
+                println!("Fetched Bucket {:?}", bucket);
+            }
+        
+            let result = s3::buckets::save_buckets_to_file(&buckets, &app);
+            match result {
+                Ok(_) => {
+                    let buckets_from_file = s3::buckets::get_buckets_from_file(&profile, app).unwrap();
+        
+                    for bucket in buckets_from_file {
+                        println!("Bucket from file {:?}", bucket);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to save buckets: {:?}", e);
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to fetch buckets: {:?}", e);
+        }
+    }
+
+    
+    Ok(())
 }
 
 /// Simple program to greet a person
@@ -119,6 +157,8 @@ pub struct CliArgs {
 
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
+    /// Command to run whatever test fn is currently in main
+    Test,
     /// Preview fetch results
     #[command(arg_required_else_help = true)]
     Preview {

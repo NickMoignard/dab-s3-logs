@@ -4,7 +4,7 @@ use human_bytes::human_bytes;
 use is_terminal::is_terminal;
 use log::error as log_error;
 use anyhow::Result;
-use crate::{app::{download, App}, s3::list_keys, storage::get_used_storage};
+use crate::{app::{download, App}, aws::s3::list_keys, storage::get_used_storage};
 
 pub mod errors;
 

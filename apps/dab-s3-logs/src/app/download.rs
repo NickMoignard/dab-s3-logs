@@ -3,7 +3,9 @@ use indicatif::{ProgressBar, ProgressStyle};
 use tokio::sync::mpsc;
 use anyhow::Result;
 use std::fs;
-use crate::s3::{self, Query};
+
+
+use crate::aws::s3::{download_file, Query};
 
 use super::App;
 
@@ -45,7 +47,7 @@ pub async fn download_query_results(query: &Query, bucket: String,  app: &App, c
               let o = object.clone();
               let key_temp = o.key.unwrap().clone();
 
-              s3::download_file(&client_clone, &bucket, key_temp.as_str(), &download_dir_path_buf).await.unwrap();
+              download_file(&client_clone, &bucket, key_temp.as_str(), &download_dir_path_buf).await.unwrap();
   
               let file_path = download_dir_path_buf.join(key_temp).to_str().unwrap().to_string();
               let metadata = fs::metadata(file_path.clone()).unwrap();
