@@ -19,7 +19,6 @@ async fn main() -> OtherResult<()> {
         }
     };
     
-
     let client = client::get_aws_client(profile).await.unwrap();
   
     match args.cmd {
@@ -103,7 +102,7 @@ async fn main() -> OtherResult<()> {
             commands::reset::delete_downloaded_logs().await?;
         }
         Commands::Test => {
-            // place test code here
+            aws::s3::cli_wrapper::test_cmd();
         }
     }
 

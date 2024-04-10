@@ -8,6 +8,7 @@ use human_bytes::human_bytes;
 
 pub mod errors;
 pub mod buckets;
+pub mod cli_wrapper;
 
 #[derive(Debug)]
 pub struct Query {

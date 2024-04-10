@@ -128,6 +128,7 @@ dependencies = [
  "aws-config",
  "aws-sdk-s3",
  "bytesize",
+ "dateparser",
  "dialoguer",
  "dirs",
  "env_logger",
@@ -872,6 +873,18 @@ dependencies = [
  "tokio-stream",
  "toml",
  "walkdir",
+]
+
+[[package]]
+name = "dateparser"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2ef451feee09ae5ecd8a02e738bd9adee9266b8fa9b44e22d3ce968d8694238"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "lazy_static",
+ "regex",
 ]
 
 [[package]]
