@@ -1,17 +1,26 @@
 use std::{path::PathBuf, rc::Rc};
-
 use log::info;
 use clap::{arg, command, Args, Parser, Subcommand};
-use aws_sdk_s3::Client;
-use anyhow::{Error, Result as OtherResult};
-use dab_s3_logs::{app, aws::{s3, client, profiles}, commands};
+use anyhow::Result as OtherResult;
+use dab_s3_logs::{app, commands};
+use aws::{client, profiles};
 
 #[tokio::main]
 async fn main() -> OtherResult<()> {
     let app = app::setup().unwrap();
+    let conf = Rc::new(app.config.lock().unwrap().clone().unwrap());
     let args = CliArgs::parse();
 
-    let client = client::get_aws_client(args.profile, &app).await.unwrap();
+    let profile = {
+        let from_conf = &conf.aws_profile;
+        match args.profile {
+            Some(profile) => Some(profile),
+            None => from_conf.clone(),
+        }
+    };
+    
+
+    let client = client::get_aws_client(profile).await.unwrap();
   
     match args.cmd {
         Commands::Fetch { bucket, prefix } => {
@@ -35,7 +44,7 @@ async fn main() -> OtherResult<()> {
         Commands::Config(config) => match config.cmd {
             Some(config) => match config {
                 ConfigCommands::SetDownloadDir { path } => {
-                    let result = commands::config::set_download_directory(path);
+                    let result = commands::config::set_download_dir::set_download_directory(path);
                     match result {
                         Ok(_) => {}
                         Err(e) => {
@@ -44,7 +53,7 @@ async fn main() -> OtherResult<()> {
                     }
                 }
                 ConfigCommands::SetMaxStorage { size } => {
-                    let result = commands::config::set_max_storage(size.as_str());
+                    let result = commands::config::set_max_storage::set_max_storage(size.as_str());
                     match result {
                         Ok(_) => {}
                         Err(e) => {
@@ -53,7 +62,7 @@ async fn main() -> OtherResult<()> {
                     }
                 }
                 ConfigCommands::List => {
-                    let result = commands::config::list();
+                    let result = commands::config::list_vars::list_vars();
                     match result {
                         Ok(_) => {}
                         Err(e) => {
@@ -62,7 +71,7 @@ async fn main() -> OtherResult<()> {
                     }
                 }
                 ConfigCommands::ListAwsProfiles => {
-                    let result = profiles::get_aws_profiles(&app);
+                    let result = profiles::get_aws_profiles::get_aws_profiles();
                     match result {
                         Ok(profiles) => {
                             for profile in profiles {
@@ -75,7 +84,7 @@ async fn main() -> OtherResult<()> {
                     }
                 }
                 ConfigCommands::SelectAwsProfile => {
-                    let result = profiles::select_aws_profile(&app);
+                    let result = commands::config::select_aws_profile::select_aws_profile();
                     match result {
                         Ok(_) => {}
                         Err(e) => {
@@ -94,7 +103,7 @@ async fn main() -> OtherResult<()> {
             commands::reset::delete_downloaded_logs().await?;
         }
         Commands::Test => {
-            test_buckets_code(&app, &client).await.unwrap();
+            // place test code here
         }
     }
 
@@ -104,41 +113,6 @@ async fn main() -> OtherResult<()> {
 
 fn exit() {
     info!("Exiting");
-}
-
-async fn test_buckets_code(app: &app::App, client: &Client) -> Result<(), Error> {
-    let cfg = Rc::new(app.config.lock().unwrap().clone().unwrap());
-    let profile = cfg.aws_profile.clone().unwrap();
-    println!("Profile: {:?}", profile);
-
-    let buckets = s3::buckets::get_buckets(client).await;
-    match buckets {
-        Ok(buckets) => {
-            for bucket in &buckets {
-                println!("Fetched Bucket {:?}", bucket);
-            }
-        
-            let result = s3::buckets::save_buckets_to_file(&buckets, &app);
-            match result {
-                Ok(_) => {
-                    let buckets_from_file = s3::buckets::get_buckets_from_file(&profile, app).unwrap();
-        
-                    for bucket in buckets_from_file {
-                        println!("Bucket from file {:?}", bucket);
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Failed to save buckets: {:?}", e);
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Failed to fetch buckets: {:?}", e);
-        }
-    }
-
-    
-    Ok(())
 }
 
 /// Simple program to greet a person

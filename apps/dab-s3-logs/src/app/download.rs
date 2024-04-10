@@ -3,9 +3,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use tokio::sync::mpsc;
 use anyhow::Result;
 use std::fs;
-
-
-use crate::aws::s3::{download_file, Query};
+use aws::s3::{download_file, Query};
 
 use super::App;
 

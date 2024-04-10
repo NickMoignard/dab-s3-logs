@@ -1,8 +1,7 @@
 use aws_sdk_s3::{types::Bucket, Client};
 use serde::{Deserialize, Serialize};
-use std::{fs::{create_dir_all, File}, io::Write, rc::Rc};
+use std::{fs::{create_dir_all, File}, io::Write, path::PathBuf};
 use toml;
-use crate::app::App;
 
 use super::errors::BucketsError;
 
@@ -27,32 +26,19 @@ fn bucket_to_dto(bucket: &Bucket) -> BucketDto {
 
 const BUCKETS_DIRECTORY: &str = "buckets";
 
-pub fn save_buckets_to_file(buckets: &Vec<Bucket>, app: &App) -> Result<(), BucketsError> {
-  let cfg = Rc::new(app.config.lock().unwrap().clone().unwrap());
-  
-  // THIS EXPECTS A PROFILE TO BE PRESENT
-  // THE PROGRAM WILL PANIC IF NO PROFILE IS FOUND
-  // NOT IDEAL
-  // PERHAPS A DEFAULT PROFILE SHOULD BE USED
-  // OR A PROFILE SHOULD BE CREATED
-  // LETS NOT LEAVE THIS AS IS
-  let current_profile = cfg.aws_profile.clone().unwrap();
-
-
-  let data_directory = cfg.data_directory.clone();
-
+pub fn save_buckets_to_file(buckets: &Vec<Bucket>, profile: &str, data_directory: PathBuf) -> Result<(), BucketsError> {
   let bucket_dtos = buckets.iter().map(|bucket| {
     bucket_to_dto(bucket)
   }).collect::<Vec<BucketDto>>();
 
   let profile_with_buckets = BucketsContainer {
-    profile_name: current_profile.clone(),
+    profile_name: profile.to_string(),
     buckets: bucket_dtos,
   };
 
   let toml = toml::to_string(&profile_with_buckets).unwrap();
 
-  let filename = format!("{}.toml", current_profile);
+  let filename = format!("{}.toml", profile);
   let buckets_data_dir = data_directory.join(BUCKETS_DIRECTORY);
 
   if !buckets_data_dir.exists() {
@@ -103,9 +89,7 @@ pub async fn get_buckets(client: &Client) -> Result<Vec<Bucket>, BucketsError> {
   }
 }
 
-pub fn get_buckets_from_file(profile: &str, app: &App) -> Result<Vec<BucketDto>, BucketsError> {
-  let cfg = Rc::new(app.config.lock().unwrap().clone().unwrap());
-  let data_directory = cfg.data_directory.clone();
+pub fn get_buckets_from_file(profile: &str, data_directory: PathBuf) -> Result<Vec<BucketDto>, BucketsError> {
   let filename = format!("{}.toml", profile);
   let buckets_data_dir = data_directory.join(BUCKETS_DIRECTORY);
   let file_path = buckets_data_dir.join(filename);

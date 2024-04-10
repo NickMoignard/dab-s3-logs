@@ -2,6 +2,6 @@
 
 members = [
   "crates/aws",
-  "apps/dab-s3-logs",
+  "apps/dab-s3-logs", "crates/fs",
 ]
 

@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aws-config = { version = "1.1.9", features = ["behavior-version-latest"] }
+aws = { path = "../../crates/aws" }
 aws-sdk-s3 = { version = "1.21.0", features = ["behavior-version-latest"] }
 chrono = "0.4.37"
 env_logger = "0.11.3"

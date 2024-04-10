@@ -28,9 +28,9 @@ const DEFAULT_MAX_STORAGE: u64 = ByteSize::gb(20).as_u64(); /// 20Gb
 
 impl ::std::default::Default for ApplicationConfig {
   fn default() -> Self { 
-    let download_directory = dirs::download_dir().unwrap().join(APPLICATION_NAME);
-    let cache_directory = dirs::cache_dir().unwrap().join(APPLICATION_NAME);
-    let data_directory = dirs::data_dir().unwrap().join(APPLICATION_NAME);
+    let download_directory = dirs::home_dir().unwrap().join(APPLICATION_NAME).join("downloads");
+    let cache_directory = dirs::home_dir().unwrap().join(APPLICATION_NAME).join("cache");
+    let data_directory = dirs::home_dir().unwrap().join(APPLICATION_NAME).join("data");
     let aws_config_path = dirs::home_dir().unwrap().join(DEFAULT_AWS_CONFIG_PATH_SUFFIX);
 
     Self {
