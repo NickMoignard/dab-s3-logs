@@ -1,0 +1,35 @@
+targets:
+  - platform: win32
+    arch: x64
+    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-x86_64-windows.zip
+  - platform: linux
+    arch: x64
+    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-x86_64-linux.tar.xz
+  - platform: darwin
+    arch: x64
+    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-x86_64-macos.tar.xz
+  - platform: darwin
+    arch: x64
+    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-aarch64-macos.tar.xz
+
+brew:
+  name: dab-s3-logs
+  publish: true # push an update commit to the tap repo
+  tap: NickMoignard/homebrew-tap
+  recipe_fname: dab-s3-logs.rb
+  recipe_template: |
+    class Recon < Formula
+      desc "Small utility to download and parse logs from S3"
+      homepage "http://www.github.com/NickMoignard/dab-s3-logs"
+      url "__URL__"
+      version "__VERSION__"
+      sha256 "__SHA__"
+
+      def install
+        bin.install "dab-s3-logs"
+      end
+
+      test do
+        system "#{bin}/dab-s3-logs"
+      end
+    end
