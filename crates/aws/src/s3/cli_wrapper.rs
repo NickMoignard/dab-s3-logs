@@ -41,7 +41,7 @@ pub fn query_s3_objects(profile: &str, bucket: &str, obj_path: &str) -> Vec<Stri
 #[derive(Debug)]
 enum NestedValue {
   Map(HashMap<String, NestedValue>),
-  Value(String),
+  // Value(String),
 }
 
 
