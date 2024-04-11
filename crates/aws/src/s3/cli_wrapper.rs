@@ -49,6 +49,7 @@ enum NestedValue {
 // TODO: add progress display with indicatif
 // TODO: add error handling
 // TODO: add completions to --prefix, --bucket options
+// TODO: check dependancy is installed and available (aws-cli-v2)
 fn recurse_through_bucket(profile: &str, bucket: &str, obj_path_option: Option<&str>) -> Result<Option<HashMap<String, NestedValue>>> {
   let obj_path: &str = match obj_path_option {
     Some(path) => path,
@@ -62,10 +63,12 @@ fn recurse_through_bucket(profile: &str, bucket: &str, obj_path_option: Option<&
       println!("Recursing into bucket: {}", obj);
       let obj = obj.trim_end_matches("/");
       match parse(obj) {
-        Ok(dt) => {
-          map.insert(obj.to_string(), NestedValue::Value(dt.to_string()));
+        Ok(_) => {
+          // don't recurse into directories with names that can be parsed into a date
+          map.insert(obj.to_string(), NestedValue::Map(HashMap::new()));
         }
         Err(_) => {
+          // if the directory name can't be parsed into a date assume it's a directory with nested directories
           let result = recurse_through_bucket(profile, bucket, Some(&obj)).unwrap().unwrap();
           map.insert(obj.to_string(), NestedValue::Map(result));
         }
