@@ -1,0 +1,20 @@
+name: OSV-Scanner PR Scan
+
+on:
+  pull_request:
+    branches: [master]
+  merge_group:
+    branches: [master]
+  push:
+    branches: [master]
+  schedule:
+    # Run on 12:30 pm UTC every Monday
+    - cron: "30 12 * * 1"
+
+permissions:
+  security-events: write
+  contents: read
+
+jobs:
+  scan-pr:
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v1.6.2-beta1"
