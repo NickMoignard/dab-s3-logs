@@ -5,3 +5,8 @@ members = [
   "apps/dab-s3-logs", "crates/fs",
 ]
 
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
