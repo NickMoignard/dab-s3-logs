@@ -20,7 +20,7 @@ pub struct BucketsContainer {
 fn bucket_to_dto(bucket: &Bucket) -> BucketDto {
   BucketDto {
     name: bucket.name.clone().unwrap(),
-    creation_date: bucket.creation_date.clone().unwrap().to_string(),
+    creation_date: bucket.creation_date.unwrap().to_string(),
   }
 }
 

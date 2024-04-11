@@ -18,15 +18,10 @@ fn parse_profiles_from_ini(ini: Ini) -> Vec<String> {
   ini.iter()
     .filter_map(
       |(sec, _props)| {
-        match sec {
-          Some(section) => {
-            Some(section.to_string()
+        sec.map(|section| section.to_string()
             .replace("profile", "")
             .trim()
-            .to_string())
-          }
-          None => None
-        }        
+            .to_string())        
       }
     ).collect()
 }

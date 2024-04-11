@@ -59,9 +59,9 @@ fn recurse_through_bucket(profile: &str, bucket: &str, obj_path_option: Option<&
   let mut map: HashMap<String, NestedValue> = HashMap::new();
   let objects = query_s3_objects(profile, bucket, obj_path);
   for obj in objects {
-    if obj.ends_with("/") {
+    if obj.ends_with('/') {
       println!("Recursing into bucket: {}", obj);
-      let obj = obj.trim_end_matches("/");
+      let obj = obj.trim_end_matches('/');
       match parse(obj) {
         Ok(_) => {
           // don't recurse into directories with names that can be parsed into a date
@@ -69,7 +69,7 @@ fn recurse_through_bucket(profile: &str, bucket: &str, obj_path_option: Option<&
         }
         Err(_) => {
           // if the directory name can't be parsed into a date assume it's a directory with nested directories
-          let result = recurse_through_bucket(profile, bucket, Some(&obj)).unwrap().unwrap();
+          let result = recurse_through_bucket(profile, bucket, Some(obj)).unwrap().unwrap();
           map.insert(obj.to_string(), NestedValue::Map(result));
         }
       }
@@ -84,7 +84,7 @@ fn recurse_through_bucket(profile: &str, bucket: &str, obj_path_option: Option<&
 fn parse_stdout(stdout: Vec<u8>) -> Vec<String> {
   let output = str::from_utf8(&stdout).unwrap();
   output
-    .split("\n")
+    .split('\n')
     .map(|line| line.trim().to_string().replace("PRE", "").trim().to_string()).filter_map(|item| {
       if item.is_empty() {
         None

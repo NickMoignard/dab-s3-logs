@@ -10,7 +10,7 @@ pub async fn get_aws_client(profile: Option<String>) -> Result<Client, errors::C
   let region_provider = RegionProviderChain::default_provider().or_else(REGION);
   let mut config_builder = aws_config::from_env().region(region_provider);
 
-  if !profile.is_none() {
+  if profile.is_some() {
     config_builder = config_builder.profile_name(profile.unwrap());
   }
 
