@@ -12,7 +12,7 @@ pub async fn delete_downloaded_logs () -> Result<()>{
     from_paths.push(path);
   });
 
-  let result = remove_items(&from_paths).unwrap();
+  remove_items(&from_paths)?;
 
-  Ok(result)
+  Ok(())
 }

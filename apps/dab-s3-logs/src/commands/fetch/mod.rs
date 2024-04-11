@@ -68,7 +68,7 @@ pub async fn fetch (client: &Client, app: &App, bucket: String, prefix: String) 
     }
   }
 
-  let result = download::download_query_results(&query, bucket, app, &client).await;
+  let result = download::download_query_results(&query, bucket, app, client).await;
   match result {
     Ok(files) => {
       Ok(files)
@@ -98,11 +98,11 @@ pub async fn preview (client: &Client, bucket: String, prefix: String) -> Result
       println!("Prefix: {}", query.prefix);
       println!("Size: {}", human_bytes(query.size as f64));
       println!("Objects: {}", query.objects.len());
-      return Ok(());
+      Ok(())
     }
     Err(e) => {
       log_error!("{}", e);
-      return Err(errors::PreviewError::PreviewFailed)
+      Err(errors::PreviewError::PreviewFailed)
     }
   }
 }

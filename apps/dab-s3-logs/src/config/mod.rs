@@ -53,7 +53,7 @@ pub fn get_config() -> Result<ApplicationConfig, confy::ConfyError> {
   let file_path = confy::get_configuration_file_path(APPLICATION_NAME, APPLICATION_CONFIG_NAME);
   debug!("Loaded config: {:?} from {:?}", config, file_path);
 
-  return config
+  config
 }
 
 pub fn update_config(cfg: ApplicationConfig) -> Result<(), confy::ConfyError>{

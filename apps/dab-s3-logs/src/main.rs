@@ -40,8 +40,8 @@ async fn main() -> OtherResult<()> {
                 }
             }
         }
-        Commands::Config(config) => match config.cmd {
-            Some(config) => match config {
+        Commands::Config(config) => if let Some(config) = config.cmd {
+            match config {
                 ConfigCommands::SetDownloadDir { path } => {
                     let result = commands::config::set_download_dir::set_download_directory(path);
                     match result {
@@ -91,9 +91,7 @@ async fn main() -> OtherResult<()> {
                         }
                     }
                 }
-                
             }
-            None => {}
         }
         Commands::Output => {
             commands::output::output_files(&app).await?;

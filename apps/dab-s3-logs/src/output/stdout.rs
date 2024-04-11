@@ -13,10 +13,7 @@ pub fn output_logfile (path: &Path) {
 fn is_gzipped (path: &Path) -> bool {
   let fmt = FileFormat::from_file(path).unwrap();
 
-  match fmt {
-      FileFormat::Gzip => true,
-      _ => false
-  }
+  matches!(fmt, FileFormat::Gzip)
 }
 
 fn parse_gzipped_logfile (path: &Path) -> Result<Value> {
