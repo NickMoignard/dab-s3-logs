@@ -77,7 +77,7 @@ pub async fn download_file(client: &Client, bucket_name: &str, key: &str, dir: &
   let file = File::create(&file_path)?;
   let mut buf_writer = BufWriter::new(file);
   while let Some(bytes) = data.try_next().await? {
-    buf_writer.write(&bytes)?;
+    buf_writer.write_all(&bytes)?;
   }
   buf_writer.flush()?;
 
