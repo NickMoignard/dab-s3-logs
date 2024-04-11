@@ -1,16 +1,10 @@
 targets:
-  - platform: win32
-    arch: x64
-    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-x86_64-windows.zip
-  - platform: linux
-    arch: x64
-    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-x86_64-linux.tar.xz
   - platform: darwin
     arch: x64
-    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-x86_64-macos.tar.xz
+    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-x86_64-macos.tar.gz
   - platform: darwin
     arch: x64
-    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-aarch64-macos.tar.xz
+    url_template: https://github.com/NickMoignard/dab-s3-logs/releases/download/v__VERSION__/dab-s3-logs-aarch64-macos.tar.gz
 
 brew:
   name: dab-s3-logs
