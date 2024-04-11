@@ -26,7 +26,7 @@ fn bucket_to_dto(bucket: &Bucket) -> BucketDto {
 
 const BUCKETS_DIRECTORY: &str = "buckets";
 
-pub fn save_buckets_to_file(buckets: &Vec<Bucket>, profile: &str, data_directory: PathBuf) -> Result<(), BucketsError> {
+pub fn save_buckets_to_file(buckets: &[Bucket], profile: &str, data_directory: PathBuf) -> Result<(), BucketsError> {
   let bucket_dtos = buckets.iter().map(|bucket| {
     bucket_to_dto(bucket)
   }).collect::<Vec<BucketDto>>();
